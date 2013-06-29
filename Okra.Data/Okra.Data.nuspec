@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>Valk</authors>
+    <owners>Valk</owners>
+    <licenseUrl>http://okra.codeplex.com/license</licenseUrl>
+    <projectUrl>https://github.com/Valks/Orka</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>Okra Data Framework for .Net 4.0</description>
+    <releaseNotes>Separated the Data Framework components are retargeted to .net 4.0.</releaseNotes>
+    <copyright>Copyright 2013</copyright>
+    <tags>Okra Okra.Data DataVirtualization</tags>
+  </metadata>
+</package>
