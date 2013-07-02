@@ -8,7 +8,7 @@ namespace Okra.Data
   {
     // *** Fields ***
 
-    private WeakReferenceList<IUpdatableCollection> updateSubscriptions = new WeakReferenceList<IUpdatableCollection>();
+    private readonly WeakReferenceList<IUpdatableCollection> _updateSubscriptions = new WeakReferenceList<IUpdatableCollection>();
 
     // *** IDataListSource<T> Methods ***
 
@@ -20,15 +20,15 @@ namespace Okra.Data
 
     public IDisposable Subscribe(IUpdatableCollection collection)
     {
-      WeakReference collectionReference = updateSubscriptions.AddAndReturnReference(collection);
-      return new DelegateDisposable(() => updateSubscriptions.Remove(collectionReference));
+      WeakReference collectionReference = _updateSubscriptions.AddAndReturnReference(collection);
+      return new DelegateDisposable(() => _updateSubscriptions.Remove(collectionReference));
     }
 
     // *** Protected Methods ***
 
     protected void PostUpdate(DataListUpdate update)
     {
-      foreach (IUpdatableCollection collection in updateSubscriptions)
+      foreach (IUpdatableCollection collection in _updateSubscriptions)
         collection.Update(update);
     }
   }

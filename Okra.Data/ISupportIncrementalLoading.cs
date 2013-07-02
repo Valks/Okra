@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
-using Microsoft.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Okra.Data
 {
@@ -27,6 +28,6 @@ namespace Okra.Data
     //
     // Returns:
     //     The wrapped results of the load operation.
-    TaskAwaiter<LoadMoreItemsResult> LoadMoreItemsAsync(uint count);
+    Task<LoadMoreItemsResult> LoadMoreItemsAsync(uint count);
 }
   }

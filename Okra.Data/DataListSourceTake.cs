@@ -24,15 +24,21 @@ namespace Okra.Data
 
         // *** Methods ***
 
-        public override async Task<int> GetCountAsync()
+        public override Task<int> GetCountAsync()
         {
-            // Get the source count
+          return TaskHelper.RunAsync(() =>
+            {
+              // Get the source count
 
-            sourceCount = await Source.GetCountAsync();
+              Task<int> task = Source.GetCountAsync();
+              task.Start();
+              task.Wait();
+              sourceCount = task.Result;
 
-            // Return the minimum value of source and 'count'
+              // Return the minimum value of source and 'count'
 
-            return Math.Min(sourceCount, count);
+              return Math.Min(sourceCount, count);
+            });
         }
 
         public override Task<T> GetItemAsync(int index)

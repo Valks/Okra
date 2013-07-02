@@ -13,7 +13,7 @@ namespace Okra.Data
             if (count < 0)
                 throw new ArgumentOutOfRangeException("count", ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ParameterMustBeZeroOrPositive"));
 
-            return new DataListSource_Skip<TSource>(source, count);
+            return new DataListSourceSkip<TSource>(source, count);
         }
 
         public static IDataListSource<TSource> Take<TSource>(this IDataListSource<TSource> source, int count)

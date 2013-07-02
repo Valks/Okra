@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Runtime.CompilerServices;
 using Okra.Data.Helpers;
 
 namespace Okra.Data
@@ -76,31 +76,28 @@ namespace Okra.Data
         {
             get
             {
-                // If we have not yet retrived the number of items from the data list source then return true
+              // If we have not yet retrieved the number of items from the data list source then return true
 
                 if (sourceCount == null)
                     return true;
 
-                // Otherwise return true only if there are items yet to be retrived
+                // Otherwise return true only if there are items yet to be retrieved
 
                 else
                     return currentCount < sourceCount;
             }
         }
 
-        public TaskAwaiter<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
+        public Task<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
         {
-            //return LoadMoreItemsAsyncInternal((int)count).AsAsyncOperation();
-
-          return AwaitExtensions.GetAwaiter(LoadMoreItemsAsyncInternal((int) count));
-
+          return TaskHelper.RunAsync(() => LoadMoreItemsAsyncInternal((int) count));
         }
 
         // *** Overridden Base Methods ***
 
         protected override Task<int> GetCountAsync()
         {
-          return TaskEx.FromResult(currentCount);
+          return TaskHelper.RunAsync(() => currentCount);
         }
 
         protected override Task<T> GetItemAsync(int index)
@@ -128,16 +125,22 @@ namespace Okra.Data
 
         // *** Private Methods ***
 
-        private async Task<LoadMoreItemsResult> LoadMoreItemsAsyncInternal(int count)
+        private LoadMoreItemsResult LoadMoreItemsAsyncInternal(int count)
         {
             IsLoading = true;
 
             // If we currently do not know the number of items then fetch this
 
-            if (sourceCount == null)
-                sourceCount = await dataListSource.GetCountAsync();
+          if (sourceCount == null)
+          {
+            Task<int> task = dataListSource.GetCountAsync();
+            task.Start();
+            task.Wait();
 
-            // Set a minimum paging size if requested
+            sourceCount = task.Result;
+          }
+
+          // Set a minimum paging size if requested
 
             count = Math.Max(count, MinimumPagingSize);
 
@@ -153,7 +156,7 @@ namespace Okra.Data
             for (int i = 0; i < count; i++)
                 fetchItemTasks[i] = dataListSource.GetItemAsync(startIndex + i);
 
-          await TaskEx.WhenAll(fetchItemTasks);
+          Task.WaitAll(fetchItemTasks);
 
             // Increment the current count
 
