@@ -4,14 +4,14 @@
     <id>$id$</id>
     <version>$version$</version>
     <title>$title$</title>
-    <authors>Valk</authors>
+    <authors>Valk AndyWilkinson</authors>
     <owners>Valk</owners>
     <licenseUrl>http://okra.codeplex.com/license</licenseUrl>
-    <projectUrl>https://github.com/Valks/Orka</projectUrl>
+    <projectUrl>https://github.com/Valks/Okra</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <description>Okra Data Framework for .Net 4.0</description>
-    <releaseNotes>Separated the Data Framework components are retargeted to .net 4.0.</releaseNotes>
+    <description>$description$</description>
+    <releaseNotes>Okra.Data is the Virtualized Data component seperated from all the other features.</releaseNotes>
     <copyright>Copyright 2013</copyright>
-    <tags>Okra Okra.Data DataVirtualization</tags>
+    <tags>Okra Virtualized VirtualizingList</tags>
   </metadata>
 </package>
