@@ -112,6 +112,9 @@
     <Compile Include="DataTransfer\IShareTargetManager.cs" />
     <Compile Include="DataTransfer\ShareSourceManager.cs" />
     <Compile Include="DataTransfer\ShareTargetManager.cs" />
+    <Compile Include="Data\GenericPagedDataListSource.cs" />
+    <Compile Include="Data\GenericPagedRequestResult.cs" />
+    <Compile Include="Data\IGenericPagedRequestResult.cs" />
     <Compile Include="Navigation\INavigationContext.cs" />
     <Compile Include="Navigation\NavigationContext.cs" />
     <Compile Include="Navigation\NavigationEntryState.cs" />
