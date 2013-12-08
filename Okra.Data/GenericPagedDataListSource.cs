@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace Okra.Data
 {
-  public class GenericPagedDataListSource<T, U> : PagedDataListSource<T> where U : IGenericPagedRequestResult<T>
+  public class GenericPagedDataListSource<T> : PagedDataListSource<T>
   {
     private const int PAGE_SIZE = 20;
-    private readonly Func<int, int, U> _requestFunc;
-    private readonly Func<int> _countFunc; 
+    private readonly Func<int, int, DataListPageResult<T>> _requestFunc;
+    private readonly Func<int?> _countFunc; 
 
-    public GenericPagedDataListSource(Func<int, int, U> requestFunc, Func<int> countFunc)
+    public GenericPagedDataListSource(Func<int, int, DataListPageResult<T>> requestFunc, Func<int?> countFunc)
     {
       _requestFunc = requestFunc;
       if (countFunc == null)
       {
-        countFunc = () => requestFunc(0, 1).Count;
+        countFunc = () => requestFunc(0, 1).TotalItemCount;
       }
 
       _countFunc = countFunc;
@@ -32,9 +32,9 @@ namespace Okra.Data
     {
       return new Task<DataListPageResult<T>>(() =>
       {
-        U result = _requestFunc(pageNumber, PAGE_SIZE);
+        DataListPageResult<T> result = _requestFunc(pageNumber, PAGE_SIZE);
 
-        return new DataListPageResult<T>(result.Count, PAGE_SIZE, pageNumber, result.Items);
+        return new DataListPageResult<T>(result.TotalItemCount, PAGE_SIZE, pageNumber, result.Page);
       });
     }
 
