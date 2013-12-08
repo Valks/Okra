@@ -75,11 +75,14 @@
     <Compile Include="DataListSourceTake.cs" />
     <Compile Include="DataListUpdate.cs" />
     <Compile Include="DataListUpdateAction.cs" />
+    <Compile Include="GenericPagedDataListSource.cs" />
+    <Compile Include="GenericPagedRequestResult.cs" />
     <Compile Include="Helpers\ReflectionHelper.cs" />
     <Compile Include="Helpers\ResourceHelper.cs" />
     <Compile Include="Helpers\SerializationHelper.cs" />
     <Compile Include="Helpers\TaskHelper.cs" />
     <Compile Include="IDataListSource.cs" />
+    <Compile Include="IGenericPagedRequestResult.cs" />
     <Compile Include="IncrementalLoadingDataList.cs" />
     <Compile Include="Internal\DelegateDisposable.cs" />
     <Compile Include="Internal\WeakReferenceList.cs" />
