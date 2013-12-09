@@ -23,6 +23,17 @@ namespace Okra.Data
       _countFunc = countFunc;
     }
 
+    public GenericPagedDataListSource(IQueryable<T> query)
+    {
+      _requestFunc = (pageNumber, pageSize) =>
+      {
+        var result = query.Skip(pageNumber*pageSize).Take(pageSize).ToList();
+        return new DataListPageResult<T>(result.Count,pageSize,pageNumber,result);
+      };
+
+      _countFunc = () => query.Count();
+    }
+
     protected override Task<DataListPageResult<T>> FetchCountAsync()
     {
       return new Task<DataListPageResult<T>>(() => new DataListPageResult<T>(_countFunc(), null, null, null));
