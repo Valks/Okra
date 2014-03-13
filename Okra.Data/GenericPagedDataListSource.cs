@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Okra.Data
@@ -14,6 +12,11 @@ namespace Okra.Data
     private readonly Func<int, int, DataListPageResult<T>>[] _requestFunc;
     private readonly Func<int?>[] _countFunc;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="requestFunc">pageNumber, pageSize, result</param>
+    /// <param name="countFunc">result</param>
     public GenericPagedDataListSource(Func<int, int, DataListPageResult<T>> requestFunc, Func<int?> countFunc = null)
     {
       _requestFunc = new Func<int, int, DataListPageResult<T>>[1];
@@ -58,9 +61,10 @@ namespace Okra.Data
       _requestFunc = new Func<int, int, DataListPageResult<T>>[query.Length];
       _countFunc = new Func<int?>[query.Length];
 
-      for (int index = 0; index < query.Length; index++)
+      for (int i = 0; i < query.Length; i++)
       {
-        _requestFunc[index] = (pageNumber, pageSize) =>
+        int index = i;
+        _requestFunc[i] = (pageNumber, pageSize) =>
         {
           var result = query[index].Skip(pageNumber * pageSize).Take(pageSize).ToList();
           return new DataListPageResult<T>(result.Count, pageSize, pageNumber, result);
@@ -72,7 +76,7 @@ namespace Okra.Data
 
     protected override Task<DataListPageResult<T>> FetchCountAsync()
     {
-      var count = _countFunc.AsParallel().WithDegreeOfParallelism(6).AsUnordered().Sum((countFunc) => countFunc() ?? 0);
+      var count = _countFunc.AsParallel().WithDegreeOfParallelism(6).AsUnordered().Sum(countFunc => countFunc() ?? 0);
       return new Task<DataListPageResult<T>>(() => new DataListPageResult<T>(count, null, null, null));
     }
 
