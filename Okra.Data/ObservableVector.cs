@@ -23,7 +23,6 @@ namespace Okra.Data
         // *** Constructors ***
 
         public ObservableVector()
-            : base()
         {
         }
 

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Okra.Data</RootNamespace>
     <AssemblyName>Okra.Data</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -73,22 +73,18 @@
     <Compile Include="DataListSource.cs" />
     <Compile Include="DataListSourceBase.cs" />
     <Compile Include="DataListSourceOperatorBase.cs" />
-    <Compile Include="DataListSourceSkip.cs" />
-    <Compile Include="DataListSourceTake.cs" />
+    <Compile Include="DataListSource_Skip.cs" />
+    <Compile Include="DataListSource_Take.cs" />
     <Compile Include="DataListUpdate.cs" />
     <Compile Include="DataListUpdateAction.cs" />
-    <Compile Include="GenericPagedDataListSource.cs" />
+    <Compile Include="SimplePagedDataListSource.cs" />
     <Compile Include="Helpers\ReflectionHelper.cs" />
-    <Compile Include="Helpers\ResourceHelper.cs" />
     <Compile Include="Helpers\SerializationHelper.cs" />
-    <Compile Include="Helpers\TaskHelper.cs" />
     <Compile Include="IDataListSource.cs" />
     <Compile Include="IncrementalLoadingDataList.cs" />
     <Compile Include="Internal\DelegateDisposable.cs" />
     <Compile Include="Internal\WeakReferenceList.cs" />
-    <Compile Include="ISupportIncrementalLoading.cs" />
     <Compile Include="IUpdatableCollection.cs" />
-    <Compile Include="LoadMoreItemsResult.cs" />
     <Compile Include="ObservableVector.cs" />
     <Compile Include="PagedDataListSource.cs" />
     <Compile Include="PageVirtualizingList.cs" />
@@ -106,6 +102,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="PostBuildScripts\NuGet.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WindowsExtensions\WindowsExtensions.csproj">
+      <Project>{c8068e31-b192-407d-bbec-0637267feef3}</Project>
+      <Name>WindowsExtensions</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

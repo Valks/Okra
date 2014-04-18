@@ -1,5 +1,5 @@
 ﻿using System;
-using Okra.Data.Helpers;
+using System.Globalization;
 
 namespace Okra.Data
 {
@@ -10,10 +10,11 @@ namespace Okra.Data
             if (source == null)
                 throw new ArgumentNullException("source");
 
-            if (count < 0)
-                throw new ArgumentOutOfRangeException("count", ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ParameterMustBeZeroOrPositive"));
+          if (count < 0)
+            throw new ArgumentOutOfRangeException("count",
+              string.Format(CultureInfo.InvariantCulture, "The parameter must be greater than or equal to zero."));
 
-            return new DataListSourceSkip<TSource>(source, count);
+            return new DataListSource_Skip<TSource>(source, count);
         }
 
         public static IDataListSource<TSource> Take<TSource>(this IDataListSource<TSource> source, int count)
@@ -21,8 +22,9 @@ namespace Okra.Data
             if (source == null)
                 throw new ArgumentNullException("source");
 
-            if (count < 0)
-                throw new ArgumentOutOfRangeException("count", ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ParameterMustBeZeroOrPositive"));
+          if (count < 0)
+            throw new ArgumentOutOfRangeException("count",
+              string.Format(CultureInfo.InvariantCulture, "The parameter must be greater than or equal to zero."));
 
             return new DataListSource_Take<TSource>(source, count);
         }

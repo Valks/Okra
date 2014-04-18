@@ -9,10 +9,10 @@ namespace Okra.Data
         public DataListPageResult(int? totalItemCount, int? itemsPerPage, int? pageNumber, IList<T> page)
             : this()
         {
-            this.TotalItemCount = totalItemCount;
-            this.ItemsPerPage = itemsPerPage;
-            this.PageNumber = pageNumber;
-            this.Page = page;
+            TotalItemCount = totalItemCount;
+            ItemsPerPage = itemsPerPage;
+            PageNumber = pageNumber;
+            Page = page;
         }
 
         // *** Properties ***

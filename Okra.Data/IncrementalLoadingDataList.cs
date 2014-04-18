@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
+using System.Globalization;
 using System.Threading.Tasks;
-using Okra.Data.Helpers;
+using Windows.UI.Xaml.Data;
 
 namespace Okra.Data
 {
@@ -14,11 +9,11 @@ namespace Okra.Data
     {
         // *** Fields ***
 
-        private readonly IDataListSource<T> dataListSource;
+        private readonly IDataListSource<T> _dataListSource;
 
-        private int minimumPagingSize;
-        private int currentCount;
-        private int? sourceCount;
+        private int _minimumPagingSize;
+        private int _currentCount;
+        private int? _sourceCount;
 
         // *** Constructors ***
 
@@ -31,7 +26,7 @@ namespace Okra.Data
 
             // Set the fields
 
-            this.dataListSource = dataListSource;
+            _dataListSource = dataListSource;
         }
 
         // *** Properties ***
@@ -40,13 +35,13 @@ namespace Okra.Data
         {
             get
             {
-                return minimumPagingSize;
+                return _minimumPagingSize;
             }
             set
             {
-                if (minimumPagingSize != value)
+                if (_minimumPagingSize != value)
                 {
-                    minimumPagingSize = value;
+                    _minimumPagingSize = value;
                     OnPropertyChanged("MinimumPagingSize");
                 }
             }
@@ -76,97 +71,90 @@ namespace Okra.Data
         {
             get
             {
-              // If we have not yet retrieved the number of items from the data list source then return true
+              // If we have not yet retrived the number of items from the data list source then return true
 
-                if (sourceCount == null)
+                if (_sourceCount == null)
                     return true;
 
-                // Otherwise return true only if there are items yet to be retrieved
-
-                else
-                    return currentCount < sourceCount;
+                // Otherwise return true only if there are items yet to be retrived
+              return _currentCount < _sourceCount;
             }
         }
 
-        public Task<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
+        public async Task<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
         {
-          return TaskHelper.RunAsync(() => LoadMoreItemsAsyncInternal((int) count));
+            return await LoadMoreItemsAsyncInternal((int)count);
         }
 
         // *** Overridden Base Methods ***
 
         protected override Task<int> GetCountAsync()
         {
-          return TaskHelper.RunAsync(() => currentCount);
+            return Task.FromResult(_currentCount);
         }
 
         protected override Task<T> GetItemAsync(int index)
         {
             // Validate arguments
 
-            if (index < 0 || index > currentCount)
-                throw new ArgumentOutOfRangeException("index", ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+          if (index < 0 || index > _currentCount)
+            throw new ArgumentOutOfRangeException("index",
+              string.Format(CultureInfo.InvariantCulture, "The specified index is outside the bounds of the array."));
 
             // Return the value from the source
 
-            return dataListSource.GetItemAsync(index);
+            return _dataListSource.GetItemAsync(index);
         }
 
         protected override int GetIndexOf(T item)
         {
             // Get the index from the source
 
-            int index = dataListSource.IndexOf(item);
+            int index = _dataListSource.IndexOf(item);
 
             // If the index is in the currently visible region then return the index, otherwise return -1
 
-            return index < currentCount ? index : -1;
+            return index < _currentCount ? index : -1;
         }
 
         // *** Private Methods ***
 
-        private LoadMoreItemsResult LoadMoreItemsAsyncInternal(int count)
+        private async Task<LoadMoreItemsResult> LoadMoreItemsAsyncInternal(int count)
         {
             IsLoading = true;
 
             // If we currently do not know the number of items then fetch this
 
-          if (sourceCount == null)
-          {
-            Task<int> task = dataListSource.GetCountAsync();
-            task.Start();
-            task.Wait();
+            if (_sourceCount == null)
+                _sourceCount = await _dataListSource.GetCountAsync();
 
-            sourceCount = task.Result;
-          }
-
-          // Set a minimum paging size if requested
+            // Set a minimum paging size if requested
 
             count = Math.Max(count, MinimumPagingSize);
 
             // Limit the number of items to fetch to the number of remaining items
 
-            count = Math.Min(count, sourceCount.Value - currentCount);
+            count = Math.Min(count, _sourceCount.Value - _currentCount);
 
             // Get all the items and wait until they are all fetched
 
-            Task<T>[] fetchItemTasks = new Task<T>[count];
-            int startIndex = currentCount;
+            var fetchItemTasks = new Task<T>[count];
+            int startIndex = _currentCount;
 
             for (int i = 0; i < count; i++)
-                fetchItemTasks[i] = dataListSource.GetItemAsync(startIndex + i);
+                fetchItemTasks[i] = _dataListSource.GetItemAsync(startIndex + i);
 
-          Task.WaitAll(fetchItemTasks);
+            await Task.WhenAll(fetchItemTasks);
 
             // Increment the current count
 
-            currentCount += count;
+            _currentCount += count;
 
             // Set properties and raise property changed for HasMoreItems if this is not false
 
             IsLoading = false;
 
-            if (currentCount == sourceCount)
+            if (_currentCount == _sourceCount)
                 OnPropertyChanged("HasMoreItems");
 
             // Raise collection changed events
@@ -175,44 +163,44 @@ namespace Okra.Data
 
             // Return the number of items added
             
-            return new LoadMoreItemsResult() { Count = (uint)count };
+            return new LoadMoreItemsResult { Count = (uint)count };
         }
 
         private void Update_Add(DataListUpdate update)
         {
             // If the entire update is outside of the visible collection then ignore it
 
-            if (update.Index > currentCount)
+            if (update.Index > _currentCount)
                 return;
 
-            currentCount += update.Count;
-            base.OnItemsAdded(update.Index, update.Count);
+            _currentCount += update.Count;
+            OnItemsAdded(update.Index, update.Count);
         }
 
         private void Update_Remove(DataListUpdate update)
         {
             // If the entire update is outside of the visible collection then ignore it
 
-            if (update.Index >= currentCount)
+            if (update.Index >= _currentCount)
                 return;
 
             // If the update overlaps the boundary of the visible collection then only remove visible items
 
-            int removedItemCount = Math.Min(update.Count, currentCount - update.Index);
+            int removedItemCount = Math.Min(update.Count, _currentCount - update.Index);
 
-            currentCount -= removedItemCount;
-            base.OnItemsRemoved(update.Index, removedItemCount);
+            _currentCount -= removedItemCount;
+            OnItemsRemoved(update.Index, removedItemCount);
         }
 
         private void Update_Reset()
         {
             // Set the count to zero
 
-            currentCount = 0;
+            _currentCount = 0;
 
             // Raise the Reset events
 
-            base.Reset();
+            Reset();
 
             // Raise a 'HasMoreItems' property changed event
 

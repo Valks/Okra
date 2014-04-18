@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Okra.Data.Helpers;
+using System.Globalization;
 
 namespace Okra.Data
 {
@@ -11,9 +7,9 @@ namespace Okra.Data
     {
         // *** Fields ***
 
-        private readonly DataListUpdateAction action;
-        private readonly int index;
-        private readonly int count;
+        private readonly DataListUpdateAction _action;
+        private readonly int _index;
+        private readonly int _count;
 
         // *** Constructors ***
 
@@ -21,34 +17,38 @@ namespace Okra.Data
         {
             // Validate Parameters
 
-            if (action != DataListUpdateAction.Reset)
-                throw new InvalidOperationException(string.Format(ResourceHelper.GetErrorResource("Exception_InvalidOperation_ConstructorNotSupportedForAction"), action));
+          if (action != DataListUpdateAction.Reset)
+            throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+              "The called constructor is not supported for the action '{0}'.", action));
 
             // Set Fields
 
-            this.action = action;
-            this.index = 0;
-            this.count = 0;
+            _action = action;
+            _index = 0;
+            _count = 0;
         }
 
         public DataListUpdate(DataListUpdateAction action, int index, int count)
         {
             // Validate Parameters
 
-            if (action != DataListUpdateAction.Add && action != DataListUpdateAction.Remove)
-                throw new InvalidOperationException(string.Format(ResourceHelper.GetErrorResource("Exception_InvalidOperation_ConstructorNotSupportedForAction"), action));
+          if (action != DataListUpdateAction.Add && action != DataListUpdateAction.Remove)
+            throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+              "The called constructor is not supported for the action '{0}'.", action));
 
-            if (index < 0)
-                throw new ArgumentOutOfRangeException("count", ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ParameterMustBeZeroOrPositive"));
+          if (index < 0)
+            throw new ArgumentOutOfRangeException("count",
+              string.Format(CultureInfo.InvariantCulture, "The parameter must be greater than or equal to zero."));
 
-            if (count <= 0)
-                throw new ArgumentOutOfRangeException("count", ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ParameterMustBePositive"));
+          if (count <= 0)
+            throw new ArgumentOutOfRangeException("count",
+              string.Format(CultureInfo.InvariantCulture, "The parameter must be greater than zero."));
 
             // Set Fields
 
-            this.action = action;
-            this.index = index;
-            this.count = count;
+            _action = action;
+            _index = index;
+            _count = count;
         }
 
         // *** Properties ***
@@ -57,7 +57,7 @@ namespace Okra.Data
         {
             get
             {
-                return action;
+                return _action;
             }
         }
 
@@ -65,7 +65,7 @@ namespace Okra.Data
         {
             get
             {
-                return count;
+                return _count;
             }
         }
 
@@ -73,7 +73,7 @@ namespace Okra.Data
         {
             get
             {
-                return index;
+                return _index;
             }
         }
     }

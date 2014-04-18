@@ -7,7 +7,7 @@ namespace Okra.Data
     {
         // *** Fields ***
 
-        private readonly IDataListSource<T> dataListSource;
+        private readonly IDataListSource<T> _dataListSource;
 
         // *** Constructors ***
 
@@ -20,7 +20,7 @@ namespace Okra.Data
 
             // Set the fields and subscribe for collection updates
 
-            this.dataListSource = dataListSource;
+            this._dataListSource = dataListSource;
             dataListSource.Subscribe(this);
         }
 
@@ -46,17 +46,17 @@ namespace Okra.Data
 
         protected override Task<int> GetCountAsync()
         {
-            return dataListSource.GetCountAsync();
+            return _dataListSource.GetCountAsync();
         }
 
         protected override Task<T> GetItemAsync(int index)
         {
-            return dataListSource.GetItemAsync(index);
+            return _dataListSource.GetItemAsync(index);
         }
 
         protected override int GetIndexOf(T item)
         {
-            return dataListSource.IndexOf(item);
+            return _dataListSource.IndexOf(item);
         }
     }
 }

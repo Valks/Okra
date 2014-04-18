@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Okra.Data.Internal
 {
@@ -10,25 +6,24 @@ namespace Okra.Data.Internal
     {
         // *** Fields ***
 
-        private readonly Action disposeAction;
-        private bool isDisposed;
+        private readonly Action _disposeAction;
+        private bool _isDisposed;
 
         // *** Constructors ***
 
         public DelegateDisposable(Action disposeAction)
         {
-            this.disposeAction = disposeAction;
+            _disposeAction = disposeAction;
         }
 
         // *** Methods ***
 
         public void Dispose()
         {
-            if (!isDisposed)
-            {
-                disposeAction();
-                isDisposed = true;
-            }
+          if (_isDisposed) return;
+
+          _disposeAction();
+          _isDisposed = true;
         }
     }
 }

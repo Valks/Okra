@@ -1,9 +1,9 @@
-﻿using Okra.Data.Helpers;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,47 +13,60 @@ namespace Okra.Data
   {
     // *** Constants ***
 
-    private const string PROPERTY_NAME_COUNT = "Count";
-    private const string PROPERTY_NAME_INDEXER = "Item[]";
+    private const string PropertyNameCount = "Count";
+    private const string PropertyNameIndexer = "Item[]";
 
     // *** Fields ***
 
-    private readonly HashSet<int> _currentFetchingIndicies = new HashSet<int>();
+    private Task<int> _getCountTask;
     private int _count;
+    private bool _isLoading;
+
+    private readonly HashSet<int> _currentFetchingIndicies = new HashSet<int>();
+
     private int? _currentFetchedIndex;
     private T _currentFetchedItem;
-    private Task<int> _getCountTask;
-    private bool _isLoading;
+
     // *** Events ***
 
-    public event NotifyCollectionChangedEventHandler CollectionChanged;
-
     public event PropertyChangedEventHandler PropertyChanged;
+    public event NotifyCollectionChangedEventHandler CollectionChanged;
 
     // *** IList<T> Properties ***
 
+    public T this[int index]
+    {
+      get { return GetItem(index); }
+      set
+      {
+        throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+          "Cannot modify a read-only collection."));
+      }
+    }
+
+    object IList.this[int index]
+    {
+      get { return GetItem(index); }
+      set
+      {
+        throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+          "Cannot modify a read-only collection."));
+      }
+    }
+
     public int Count
     {
-      get
-      {
-        return GetCount();
-      }
+      get { return GetCount(); }
     }
 
     public bool IsFixedSize
     {
-      get
-      {
-        return false;
-      }
+      get { return false; }
     }
 
     public bool IsLoading
     {
-      get
-      {
-        return _isLoading;
-      }
+      get { return _isLoading; }
       protected set
       {
         if (_isLoading != value)
@@ -66,62 +79,37 @@ namespace Okra.Data
 
     public bool IsReadOnly
     {
-      get
-      {
-        return true;
-      }
+      get { return true; }
     }
 
     public bool IsSynchronized
     {
-      get
-      {
-        return false;
-      }
+      get { return false; }
     }
 
     public object SyncRoot
     {
-      get
-      {
-        return this;
-      }
-    }
-
-    object IList.this[int index]
-    {
-      get
-      {
-        return GetItem(index);
-      }
-      set
-      {
-        throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
-      }
-    }
-
-    public T this[int index]
-    {
-      get
-      {
-        return GetItem(index);
-      }
-      set
-      {
-        throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
-      }
+      get { return this; }
     }
 
     // *** IList<T> Methods ***
 
     public void Add(T item)
     {
-      throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
+      throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+        "Cannot modify a read-only collection."));
+    }
+
+    int IList.Add(object value)
+    {
+      throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+        "Cannot modify a read-only collection."));
     }
 
     public void Clear()
     {
-      throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
+      throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+        "Cannot modify a read-only collection."));
     }
 
     public bool Contains(T item)
@@ -129,27 +117,17 @@ namespace Okra.Data
       return IndexOf(item) != -1;
     }
 
+    bool IList.Contains(object value)
+    {
+      if (value is T)
+        return Contains((T) value);
+      else
+        return false;
+    }
+
     public void CopyTo(T[] array, int arrayIndex)
     {
       CopyToInternal(array, arrayIndex).Wait();
-    }
-
-    public IEnumerator<T> GetEnumerator()
-    {
-      //Task<int> task = GetCountAsync();
-      //task.Start();
-      //task.Wait();
-      //int count = task.Result;
-
-      //for (int i = 0; i < Count; i++)
-      //  yield return GetItemAsync(i).Result;
-
-      Task<int> task = GetCountAsync();
-      task.Start();
-      task.Wait();
-
-      for (int i = 0; i < task.Result; i++)
-        yield return GetItemAsync(i).Result;
     }
 
     void ICollection.CopyTo(Array array, int index)
@@ -157,79 +135,62 @@ namespace Okra.Data
       CopyToInternal(array, index).Wait();
     }
 
-    // *** IEnumerable<T> Methods ***
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-      return ((IEnumerable<T>)this).GetEnumerator();
-    }
-
-    int IList.Add(object value)
-    {
-      throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
-    }
-
-    bool IList.Contains(object value)
-    {
-      if (value is T)
-        return Contains((T)value);
-
-      return false;
-    }
-
-    int IList.IndexOf(object value)
-    {
-      if (value is T)
-        return GetIndexOf((T)value);
-
-      return -1;
-    }
-
-    void IList.Insert(int index, object value)
-    {
-      throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
-    }
-
-    void IList.Remove(object value)
-    {
-      throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
-    }
-
     public int IndexOf(T item)
     {
       return GetIndexOf(item);
     }
 
+    int IList.IndexOf(object value)
+    {
+      if (value is T)
+        return GetIndexOf((T) value);
+      return -1;
+    }
+
     public void Insert(int index, T item)
     {
-      throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
+      throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+        "Cannot modify a read-only collection."));
+    }
+
+    void IList.Insert(int index, object value)
+    {
+      throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+        "Cannot modify a read-only collection."));
     }
 
     public bool Remove(T item)
     {
-      throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
+      throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+        "Cannot modify a read-only collection."));
+    }
+
+    void IList.Remove(object value)
+    {
+      throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+        "Cannot modify a read-only collection."));
     }
 
     public void RemoveAt(int index)
     {
-      throw new InvalidOperationException(ResourceHelper.GetErrorResource("Exception_InvalidOperation_CannotModifyReadOnlyCollection"));
+      throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
+        "Cannot modify a read-only collection."));
+    }
+
+    // *** IEnumerable<T> Methods ***
+
+    public IEnumerator<T> GetEnumerator()
+    {
+      for (int i = 0; i < Count; i++)
+        yield return GetItemAsync(i).Result;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return ((IEnumerable<T>) this).GetEnumerator();
     }
 
     // *** Protected Methods ***
-
-    abstract protected Task<int> GetCountAsync();
-
-    abstract protected int GetIndexOf(T item);
-
-    // *** Protected Abstract Methods ***
-    abstract protected Task<T> GetItemAsync(int index);
-
-    protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
-    {
-      NotifyCollectionChangedEventHandler eventHandler = CollectionChanged;
-
-      if (eventHandler != null)
-        eventHandler(this, e);
-    }
 
     protected void OnItemsAdded(int index, int count)
     {
@@ -244,17 +205,18 @@ namespace Okra.Data
 
       // Increment the cached count for this collection
 
-      this._count += count;
+      _count += count;
 
       // Raise property changed events
 
-      OnPropertyChanged(PROPERTY_NAME_COUNT);
-      OnPropertyChanged(PROPERTY_NAME_INDEXER);
+      OnPropertyChanged(PropertyNameCount);
+      OnPropertyChanged(PropertyNameIndexer);
 
       // Raise collection changed events for each new item (in ascending order)
 
       for (int i = index; i < index + count; i++)
-        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new object[] { null }, i));
+        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
+          new object[] {null}, i));
 
       // Raise collection changed events for each previously fetching item
       // For example: The bound list may have requested item 5 and recieved a placeholder - if two items are added we need to fetch item 7
@@ -263,7 +225,8 @@ namespace Okra.Data
       foreach (int i in fetchingIndicies)
       {
         int newIndex = i + count;
-        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, new object[] { null }, new object[] { null }, newIndex));
+        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
+          new object[] {null}, new object[] {null}, newIndex));
       }
     }
 
@@ -280,41 +243,29 @@ namespace Okra.Data
 
       // Decrement the cached count for this collection
 
-      this._count -= count;
+      _count -= count;
 
       // Raise property changed events
 
-      OnPropertyChanged(PROPERTY_NAME_COUNT);
-      OnPropertyChanged(PROPERTY_NAME_INDEXER);
+      OnPropertyChanged(PropertyNameCount);
+      OnPropertyChanged(PropertyNameIndexer);
 
-      // Raise collection changed events for each removed item (in descending order)
+      // Raise collection changed events for each removed item (in decending order)
 
       for (int i = index + count - 1; i >= index; i--)
-        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new object[] { null }, i));
+        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove,
+          new object[] {null}, i));
 
       // Raise collection changed events for each previously fetching item
-      // For example: The bound list may have requested item 5 and received a placeholder - if two items are removed before this then we need to fetch item 3
+      // For example: The bound list may have requested item 5 and recieved a placeholder - if two items are removed before this then we need to fetch item 3
       //              NB - It is assumed that when item 5 is returned it is the "new" item 5
 
       foreach (int i in fetchingIndicies)
       {
         int newIndex = i - count;
-        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, new object[] { null }, new object[] { null }, newIndex));
+        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
+          new object[] {null}, new object[] {null}, newIndex));
       }
-    }
-
-    protected virtual void OnPropertyChanged(PropertyChangedEventArgs e)
-    {
-      PropertyChangedEventHandler eventHandler = PropertyChanged;
-
-      if (eventHandler != null)
-        eventHandler(this, e);
-    }
-
-    // *** Event Handlers ***
-    protected void OnPropertyChanged(string propertyName)
-    {
-      OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
     }
 
     protected void Reset()
@@ -331,26 +282,43 @@ namespace Okra.Data
 
       // Raise property and collection changed events
 
-      OnPropertyChanged(PROPERTY_NAME_COUNT);
-      OnPropertyChanged(PROPERTY_NAME_INDEXER);
+      OnPropertyChanged(PropertyNameCount);
+      OnPropertyChanged(PropertyNameIndexer);
       OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
 
-    // *** Private Methods ***
+    // *** Protected Abstract Methods ***
 
-    private Task CopyToInternal(Array array, int index)
+    protected abstract Task<int> GetCountAsync();
+
+    protected abstract Task<T> GetItemAsync(int index);
+
+    protected abstract int GetIndexOf(T item);
+
+    // *** Event Handlers ***
+
+    protected virtual void OnPropertyChanged(PropertyChangedEventArgs e)
     {
-      return new Task(() =>
-        {
-          Task<int> task = GetCountAsync();
-          task.Start();
-          task.Wait();
-          int count = task.Result;
+      PropertyChangedEventHandler eventHandler = PropertyChanged;
 
-          for (int i = 0; i < count; i++)
-            array.SetValue(GetItemAsync(i).Result, new int[] { i + index });
-        });
+      if (eventHandler != null)
+        eventHandler(this, e);
     }
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+      OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+    {
+      NotifyCollectionChangedEventHandler eventHandler = CollectionChanged;
+
+      if (eventHandler != null)
+        eventHandler(this, e);
+    }
+
+    // *** Private Methods ***
 
     private int GetCount()
     {
@@ -358,12 +326,12 @@ namespace Okra.Data
       {
         _getCountTask = GetCountAsync();
 
-        // If the GetCountAsync call completed synchronously then return the count
+        // If the GetCountAsync call completed syncronously then return the count
 
         if (_getCountTask.IsCompleted)
           _count = _getCountTask.Result;
 
-        // Otherwise fetch the count in the background (raising changed events)
+          // Otherwise fetch the count in the background (raising changed events)
 
         else
           GetCountBackground(_getCountTask);
@@ -374,16 +342,12 @@ namespace Okra.Data
       return _count;
     }
 
-    private void GetCountBackground(Task<int> getCountTask)
+    private async void GetCountBackground(Task<int> getCountTask)
     {
       // Await for the count to be returned
 
       IsLoading = true;
-
-      getCountTask.Start();
-      getCountTask.Wait();
-      int newCount = getCountTask.Result;
-
+      int newCount = await getCountTask;
       IsLoading = false;
 
       if (_count != newCount)
@@ -392,7 +356,7 @@ namespace Okra.Data
 
         // Raise property and collection changed events
 
-        OnPropertyChanged(PROPERTY_NAME_COUNT);
+        OnPropertyChanged(PropertyNameCount);
         OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
       }
     }
@@ -408,7 +372,7 @@ namespace Okra.Data
 
       Task<T> getItemTask = GetItemAsync(index);
 
-      // If the GetItemAsync call completed synchronously then return the item directly
+      // If the GetItemAsync call completed syncronously then return the item directly
 
       if (getItemTask.IsCompleted)
         return getItemTask.Result;
@@ -419,20 +383,17 @@ namespace Okra.Data
       return default(T);
     }
 
-    private void GetItemBackground(int index, Task<T> getItemTask)
+    private async void GetItemBackground(int index, Task<T> getItemTask)
     {
       // If we are currently fetching this item then we can ignore this request
 
       if (_currentFetchingIndicies.Contains(index))
         return;
 
-      getItemTask.Start();
       // Get the item (making a note of the index as it is being retrieved)
 
       _currentFetchingIndicies.Add(index);
-      getItemTask.Wait();
-      T item = getItemTask.Result;
-
+      T item = await getItemTask;
       _currentFetchingIndicies.Remove(index);
 
       // Store the current index and value
@@ -443,13 +404,22 @@ namespace Okra.Data
 
       // Raise property and collection changed events
 
-      OnPropertyChanged(PROPERTY_NAME_INDEXER);
-      OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, default(T), index));
+      OnPropertyChanged(PropertyNameIndexer);
+      OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, default(T),
+        index));
 
       // Reset the currently fetched state
 
       _currentFetchedIndex = null;
       _currentFetchedItem = default(T);
+    }
+
+    private async Task CopyToInternal(Array array, int index)
+    {
+      int count = await GetCountAsync();
+
+      for (int i = 0; i < count; i++)
+        array.SetValue(await GetItemAsync(i), new int[] {i + index});
     }
   }
 }

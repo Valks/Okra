@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Okra.Data.Helpers;
+using System.Globalization;
 
 namespace Okra.Data
 {
@@ -12,9 +9,9 @@ namespace Okra.Data
     {
         // *** Fields ***
 
-        private T[][] internalPages = new T[0][];
-        private int pageCacheSize = int.MaxValue;
-        private List<int> recentlyAccessedPageList = new List<int>();
+        private T[][] _internalPages = new T[0][];
+        private int _pageCacheSize = int.MaxValue;
+        private readonly List<int> _recentlyAccessedPageList = new List<int>();
 
         // *** IList<T> Properties ***
 
@@ -24,13 +21,14 @@ namespace Okra.Data
             {
                 // Validate that the index is within range
 
-                if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+              if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+                  "The specified index is outside the bounds of the array."));
 
                 // If the page does not exist then return a placeholder
 
                 int pageIndex = index / PageSize;
-                T[] page = internalPages[pageIndex];
+                T[] page = _internalPages[pageIndex];
 
                 if (page == null)
                     return default(T);
@@ -48,18 +46,19 @@ namespace Okra.Data
             {
                 // Validate that the index is within range
 
-                if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+              if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+                  "The specified index is outside the bounds of the array."));
 
                 // If the page does not exist then create it
 
                 int pageIndex = index / PageSize;
-                T[] page = internalPages[pageIndex];
+                T[] page = _internalPages[pageIndex];
 
                 if (page == null)
                 {
                     page = new T[PageSize];
-                    internalPages[pageIndex] = page;
+                    _internalPages[pageIndex] = page;
                 }
 
                 // Add the page to the recently accessed page list
@@ -97,18 +96,19 @@ namespace Okra.Data
         {
             get
             {
-                return pageCacheSize;
+                return _pageCacheSize;
             }
             set
             {
                 // Validate that new value
 
-                if (value <= 0)
-                    throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ParameterMustBePositive"));
+              if (value <= 0)
+                throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+                  "The parameter must be greater than zero."));
 
                 // Set the field
 
-                pageCacheSize = value;
+                _pageCacheSize = value;
             }
         }
 
@@ -118,31 +118,33 @@ namespace Okra.Data
         {
             // Validate that the arguments are within range
 
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ParameterOutOfRange_CountMustBeZeroOrPositive"));
+          if (count < 0)
+            throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+              "The parameter must be greater than or equal to zero."));
 
-            if (pageSize < 1)
-                throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ParameterMustBePositive"));
+          if (pageSize < 1)
+            throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+              "The parameter must be greater than zero."));
 
             // If the page size has changed then clear the internal page list
 
-            if (this.PageSize != pageSize)
-                internalPages = new T[0][];
+            if (PageSize != pageSize)
+                _internalPages = new T[0][];
 
             // Update the properties
 
-            this.Count = count;
-            this.PageSize = pageSize;
+            Count = count;
+            PageSize = pageSize;
 
             // If the number of pages has changed then update the internal page list
 
             int pageCount = (Count - 1) / PageSize + 1;
 
-            if (pageCount > internalPages.Length)
+            if (pageCount > _internalPages.Length)
             {
                 T[][] newInternalPages = new T[pageCount][];
-                internalPages.CopyTo(newInternalPages, 0);
-                internalPages = newInternalPages;
+                _internalPages.CopyTo(newInternalPages, 0);
+                _internalPages = newInternalPages;
             }
         }
 
@@ -158,7 +160,7 @@ namespace Okra.Data
         public void Clear()
         {
             Count = 0;
-            internalPages = new T[0][];
+            _internalPages = new T[0][];
         }
 
         public bool Contains(T item)
@@ -172,16 +174,16 @@ namespace Okra.Data
 
             // For each page, copy to the destination in turn (or use the blank page to overwrite elsewhere)
 
-            for (int pageIndex = 0; pageIndex < internalPages.Length - 1; pageIndex++)
+            for (int pageIndex = 0; pageIndex < _internalPages.Length - 1; pageIndex++)
             {
-                T[] page = internalPages[pageIndex] ?? blankPage;
+                T[] page = _internalPages[pageIndex] ?? blankPage;
                 page.CopyTo(array, arrayIndex + pageIndex * PageSize);
             }
 
             // For the last page only copy the items up to count
 
-            T[] lastPage = internalPages[internalPages.Length - 1] ?? blankPage;
-            int lastPageStartIndex = (internalPages.Length - 1) * PageSize;
+            T[] lastPage = _internalPages[_internalPages.Length - 1] ?? blankPage;
+            int lastPageStartIndex = (_internalPages.Length - 1) * PageSize;
             int lastPageLength = Count - lastPageStartIndex;
 
             Array.ConstrainedCopy(lastPage, 0, array, arrayIndex + lastPageStartIndex, lastPageLength);
@@ -191,9 +193,9 @@ namespace Okra.Data
         {
             // Enumerate all the pages
 
-            for (int pageIndex = 0; pageIndex < internalPages.Length; pageIndex++)
+            for (int pageIndex = 0; pageIndex < _internalPages.Length; pageIndex++)
             {
-                T[] page = internalPages[pageIndex];
+                T[] page = _internalPages[pageIndex];
 
                 if (page != null)
                 {
@@ -218,8 +220,9 @@ namespace Okra.Data
         {
             // Validate that the index is within range
 
-            if (index < 0 || index > Count)
-                throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+          if (index < 0 || index > Count)
+            throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+              "The specified index is outside the bounds of the array."));
 
             // Ensure that there is enough room in the collection
 
@@ -249,8 +252,9 @@ namespace Okra.Data
         {
             // Validate that the index is within range
 
-            if (index < 0 || index >= Count)
-                throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+          if (index < 0 || index >= Count)
+            throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+              "The specified index is outside the bounds of the array."));
 
             // Reduce the count (NB: We don't worry about contracting the internal page list)
 
@@ -285,15 +289,15 @@ namespace Okra.Data
 
             // Otherwise more the specified page index to the end of the list
 
-            recentlyAccessedPageList.Remove(pageIndex);
-            recentlyAccessedPageList.Add(pageIndex);
+            _recentlyAccessedPageList.Remove(pageIndex);
+            _recentlyAccessedPageList.Add(pageIndex);
 
             // If there are more than the maxium pages then remove the last recently used
 
-            if (recentlyAccessedPageList.Count > PageCacheSize)
+            if (_recentlyAccessedPageList.Count > PageCacheSize)
             {
-                internalPages[recentlyAccessedPageList[0]] = null;
-                recentlyAccessedPageList.RemoveAt(0);
+                _internalPages[_recentlyAccessedPageList[0]] = null;
+                _recentlyAccessedPageList.RemoveAt(0);
             }
         }
 
@@ -304,14 +308,14 @@ namespace Okra.Data
 
             // Move full pages (starting at the end)
 
-            for (int pageIndex = internalPages.Length - 1; pageIndex >= insertPage; pageIndex--)
+            for (int pageIndex = _internalPages.Length - 1; pageIndex >= insertPage; pageIndex--)
             {
-                T[] page = internalPages[pageIndex];
+                T[] page = _internalPages[pageIndex];
 
                 if (page != null)
                 {
                     int startIndex = pageIndex == insertPage ? insertIndex : 0;
-                    int endIndex = pageIndex == internalPages.Length ? (Count - 1) % PageSize - 1 : PageSize - 1;
+                    int endIndex = pageIndex == _internalPages.Length ? (Count - 1) % PageSize - 1 : PageSize - 1;
 
                     // If we need to copy the last element into the next page then do this
 
@@ -335,10 +339,10 @@ namespace Okra.Data
 
             // Move full pages (starting at the start)
 
-            for (int pageIndex = removePage; pageIndex < internalPages.Length; pageIndex++)
+            for (int pageIndex = removePage; pageIndex < _internalPages.Length; pageIndex++)
             {
-                T[] page = internalPages[pageIndex];
-                T[] nextPage = pageIndex == internalPages.Length - 1 ? null : internalPages[pageIndex + 1];
+                T[] page = _internalPages[pageIndex];
+                T[] nextPage = pageIndex == _internalPages.Length - 1 ? null : _internalPages[pageIndex + 1];
 
                 if (page != null)
                 {

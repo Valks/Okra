@@ -40,7 +40,7 @@ $packProperties = "Configuration=""$Configuration"";Platform=""$Platform"";"
 # Specify any additional NuGet Pack Properties to pass to MsBuild. e.g. "TargetFrameworkVersion=v3.5;Optimize=true"
 # Do not specify the "Configuration" or "Platform" here (use $packProperties above).
 # MsBuild Properties that can be specified: http://msdn.microsoft.com/en-us/library/vstudio/bb629394.aspx
-$additionalPackProperties = ""
+$additionalPackProperties = "TargetFrameworkVersion=4.5.1"
 
 # Specify any additional NuGet Pack options to pass to nuget.exe.
 # Do not specify a "-Version" (use $versionNumber above), "-OutputDirectory", or "-NonInteractive", as these are already provided.

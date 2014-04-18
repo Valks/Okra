@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace Okra.Data
 {
-  public class GenericPagedDataListSource<T> : PagedDataListSource<T>
+  public class SimplePagedDataListSource<T> : PagedDataListSource<T>
   {
     private const int PAGE_SIZE = 20;
-    private readonly Func<int, int, DataListPageResult<T>>[] _requestFunc;
-    private readonly Func<int?>[] _countFunc;
+    private readonly IList<Func<int, int, DataListPageResult<T>>> _requestFunc;
+    private readonly IList<Func<int?>> _countFunc;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="requestFunc">pageNumber, pageSize, result</param>
     /// <param name="countFunc">result</param>
-    public GenericPagedDataListSource(Func<int, int, DataListPageResult<T>> requestFunc, Func<int?> countFunc = null)
+    public SimplePagedDataListSource(Func<int, int, DataListPageResult<T>> requestFunc, Func<int?> countFunc = null)
     {
       _requestFunc = new Func<int, int, DataListPageResult<T>>[1];
       _countFunc = new Func<int?>[1];
@@ -26,13 +26,13 @@ namespace Okra.Data
       _countFunc[0] = countFunc ?? (() => _requestFunc[0](0, 1).TotalItemCount);
     }
 
-    public GenericPagedDataListSource(Func<int, int, DataListPageResult<T>>[] requestFunc, Func<int?>[] countFunc)
+    public SimplePagedDataListSource(IList<Func<int, int, DataListPageResult<T>>> requestFunc, IList<Func<int?>> countFunc)
     {
       _requestFunc = requestFunc;
       if (countFunc == null)
       {
         countFunc = new Func<int?>[_requestFunc.Count()];
-        for (int index = 0; index < _requestFunc.Length; index++)
+        for (int index = 0; index < _requestFunc.Count; index++)
         {
           var requestFunction = _requestFunc[index];
           countFunc[index] = () => requestFunction(0, 1).TotalItemCount;
@@ -42,7 +42,7 @@ namespace Okra.Data
       _countFunc = countFunc;
     }
 
-    public GenericPagedDataListSource(IQueryable<T> query)
+    public SimplePagedDataListSource(IQueryable<T> query)
     {
       _requestFunc = new Func<int, int, DataListPageResult<T>>[1];
       _countFunc = new Func<int?>[1];
@@ -56,12 +56,12 @@ namespace Okra.Data
       _countFunc[0] = () => query.Count();
     }
 
-    public GenericPagedDataListSource(IQueryable<T>[] query)
+    public SimplePagedDataListSource(IList<IQueryable<T>> query)
     {
-      _requestFunc = new Func<int, int, DataListPageResult<T>>[query.Length];
-      _countFunc = new Func<int?>[query.Length];
+      _requestFunc = new Func<int, int, DataListPageResult<T>>[query.Count];
+      _countFunc = new Func<int?>[query.Count];
 
-      for (int i = 0; i < query.Length; i++)
+      for (int i = 0; i < query.Count; i++)
       {
         int index = i;
         _requestFunc[i] = (pageNumber, pageSize) =>

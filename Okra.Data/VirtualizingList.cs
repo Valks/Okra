@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Okra.Data.Helpers;
+using System.Globalization;
 
 namespace Okra.Data
 {
@@ -8,8 +8,8 @@ namespace Okra.Data
     {
         // *** Fields ***
 
-        private T[] internalArray = new T[0];
-        private int count = 0;
+        private T[] _internalArray = new T[0];
+        private int _count;
 
         // *** IList<T> Properties ***
 
@@ -19,24 +19,26 @@ namespace Okra.Data
             {
                 // Validate that the index is within range
 
-                if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+              if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+                  "The specified index is outside the bounds of the array."));
 
                 // If the index is in a virtual part of the list then return a placeholder value
 
-                if (index >= internalArray.Length)
+                if (index >= _internalArray.Length)
                     return default(T);
 
                 // Otherwise return the actual value
 
-                return internalArray[index];
+                return _internalArray[index];
             }
             set
             {
                 // Validate that the index is within range
 
-                if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+              if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+                  "The specified index is outside the bounds of the array."));
 
                 // Expand the internal list with empty placeholders until the item will fit
 
@@ -44,7 +46,7 @@ namespace Okra.Data
 
                 // Set the item
 
-                internalArray[index] = value;
+                _internalArray[index] = value;
             }
         }
 
@@ -52,7 +54,7 @@ namespace Okra.Data
         {
             get
             {
-                return count;
+                return _count;
             }
         }
 
@@ -70,28 +72,29 @@ namespace Okra.Data
         {
             // Validate that the index is within range
 
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ParameterOutOfRange_CountMustBeZeroOrPositive"));
+          if (count < 0)
+            throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+              "The parameter must be greater than or equal to zero."));
 
             // Update the count
 
-            this.count = count;
+            _count = count;
         }
 
         // *** IList<T> Methods ***
 
         public void Add(T item)
         {
-            int newIndex = count;
+            int newIndex = _count;
 
-            count++;
+            _count++;
             this[newIndex] = item;
         }
 
         public void Clear()
         {
-            count = 0;
-            internalArray = new T[0];
+            _count = 0;
+            _internalArray = new T[0];
         }
 
         public bool Contains(T item)
@@ -103,19 +106,19 @@ namespace Okra.Data
         {
             // Copy the array that is available
 
-            Array.Copy(internalArray, 0, array, arrayIndex, count);
+            Array.Copy(_internalArray, 0, array, arrayIndex, _count);
 
             // Set the remaining items to the placeholder
 
-            for (int i = internalArray.Length + arrayIndex; i < count + arrayIndex; i++)
+            for (int i = _internalArray.Length + arrayIndex; i < _count + arrayIndex; i++)
                 array[i] = default(T);
         }
 
         public int IndexOf(T item)
         {
-            for (int i = 0; i < internalArray.Length; i++)
+            for (int i = 0; i < _internalArray.Length; i++)
             {
-                T internalItem = internalArray[i];
+                T internalItem = _internalArray[i];
 
                 if (internalItem != null && internalItem.Equals(item))
                     return i;
@@ -128,22 +131,23 @@ namespace Okra.Data
         {
             // Validate that the index is within range
 
-            if (index < 0 || index > Count)
-                throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+          if (index < 0 || index > Count)
+            throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+              "The specified index is outside the bounds of the array."));
 
             // Ensure that there is enough room in the collection
 
-            int requiredSize = Math.Max(index, internalArray.Length + 1);
+            int requiredSize = Math.Max(index, _internalArray.Length + 1);
             EnsureCapacity(requiredSize);
 
             // If there are items after the inserted item them move them along
 
-            Array.Copy(internalArray, index, internalArray, index + 1, internalArray.Length - index - 1);
+            Array.Copy(_internalArray, index, _internalArray, index + 1, _internalArray.Length - index - 1);
 
             // Insert the new item
 
-            count++;
-            internalArray[index] = item;
+            _count++;
+            _internalArray[index] = item;
         }
 
         public bool Remove(T item)
@@ -161,23 +165,24 @@ namespace Okra.Data
         {
             // Validate that the index is within range
 
-            if (index < 0 || index >= Count)
-                throw new ArgumentOutOfRangeException(ResourceHelper.GetErrorResource("Exception_ArgumentOutOfRange_ArrayIndexOutOfRange"));
+          if (index < 0 || index >= Count)
+            throw new ArgumentOutOfRangeException(string.Format(CultureInfo.InvariantCulture,
+              "The specified index is outside the bounds of the array."));
 
             // Reduce the count
 
-            count--;
+            _count--;
 
             // Move all items after the removed item to the left
 
-            Array.Copy(internalArray, index, internalArray, index - 1, internalArray.Length - index);
+            Array.Copy(_internalArray, index, _internalArray, index - 1, _internalArray.Length - index);
         }
 
         // *** IEnumerable<T> Methods ***
 
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < _count; i++)
                 yield return this[i];
         }
 
@@ -190,7 +195,7 @@ namespace Okra.Data
 
         private void EnsureCapacity(int requiredSize)
         {
-            if (internalArray.Length < requiredSize)
+            if (_internalArray.Length < requiredSize)
             {
                 // If the capacity is too small, then make the list required size x 2
 
@@ -199,8 +204,8 @@ namespace Okra.Data
 
                 // Copy the existing data
 
-                Array.Copy(internalArray, 0, newArray, 0, internalArray.Length);
-                internalArray = newArray;
+                Array.Copy(_internalArray, 0, newArray, 0, _internalArray.Length);
+                _internalArray = newArray;
             }
         }
     }
