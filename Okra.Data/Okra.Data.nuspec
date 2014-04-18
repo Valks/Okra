@@ -11,10 +11,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>Okra.Data is the Virtualized Data component seperated from all the other features.</releaseNotes>
-    <copyright>Copyright 2013</copyright>
+    <copyright>Copyright 2014</copyright>
     <tags>Okra Virtualized VirtualizingList ISupportIncrementalLoading</tags>
   </metadata>
-  <files>
-    <file src="bin\$configuration$\*.dll" target="lib\net451" />
-  </files>
 </package>

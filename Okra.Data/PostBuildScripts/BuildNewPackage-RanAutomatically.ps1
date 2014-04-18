@@ -46,7 +46,7 @@ $additionalPackProperties = "TargetFrameworkVersion=4.5.1"
 # Do not specify a "-Version" (use $versionNumber above), "-OutputDirectory", or "-NonInteractive", as these are already provided.
 # Do not specify any "-Properties" here; instead use the $packProperties variable below.
 # Do not specify "-Build", as this may result in an infinite build loop.
-$additionalPackOptions = ""
+$additionalPackOptions = "-IncludeReferencedProjects"
 
 #################################################
 # Do Not Edit Anything Past This Point (except to add the "-Verbose" flag to the end of the last line for troubleshooting purposes).
